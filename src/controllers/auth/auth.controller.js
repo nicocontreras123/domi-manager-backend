@@ -30,5 +30,5 @@ exports.login = async (req, res) => {
 };
 
 exports.logout = (req, res) => {
-    res.status(200).json({ message: 'Cierre de sesión exitoso' });
+    res.status(200).json({ message: 'Successful Logout' });
 };
