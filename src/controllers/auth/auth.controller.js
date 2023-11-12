@@ -1,12 +1,15 @@
 const db = require('../../config/db.config');
 const authQueries = require('../../querys/authQueries');
+const jwt = require("jsonwebtoken");
+const secret = require('../../config/jwt.config');
 exports.register = async (req, res) => {
     try {
-        const { nombre_usuario, password, rol_asignado } = req.body;
-        const [results] = await db.execute(authQueries.register, [nombre_usuario, password, rol_asignado]);
-        res.status(201).json({ message: 'Usuario registrado con éxito' });
+        const { nombre_usuario, password, rol_asignado, rut, nombre, apellido } = req.body;
+        const [results] = await db.execute(authQueries.register, [nombre_usuario, password, rut, nombre, apellido, rol_asignado]);
+        res.status(201).json({ message: 'user register success' });
     } catch (error) {
-        res.status(500).json({ error: 'Error al registrar usuario' });
+        console.error(error)
+        res.status(500).json({ error: 'error in register user' });
     }
 };
 
@@ -15,16 +18,17 @@ exports.login = async (req, res) => {
     try {
         const [results] = await db.execute(authQueries.selectUserById, [nombre_usuario, password]);
         if (results.length === 1) {
-            res.status(200).json({ message: 'Inicio de sesión exitoso' });
+            const token = jwt.sign({ username: nombre_usuario }, secret, { expiresIn: '1h' });
+            console.log(token)
+            res.status(200).json({ message: 'success', token: token });
         } else {
-            res.status(401).json({ error: 'Inicio de sesión fallido' });
+            res.status(401).json({ error: 'user or password incorrect' });
         }
     } catch (error) {
-        res.status(500).json({ error: 'Error en el servidor' });
+        res.status(500).json({ error: 'error to login' });
     }
 };
 
-// Cierre de sesión
 exports.logout = (req, res) => {
     res.status(200).json({ message: 'Cierre de sesión exitoso' });
 };
