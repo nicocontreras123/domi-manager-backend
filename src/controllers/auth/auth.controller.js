@@ -19,8 +19,7 @@ exports.login = async (req, res) => {
         const [results] = await db.execute(authQueries.selectUserById, [nombre_usuario, password]);
         if (results.length === 1) {
             const token = jwt.sign({ username: nombre_usuario }, secret, { expiresIn: '1h' });
-            console.log(token)
-            res.status(200).json({ message: 'success', token: token });
+            res.status(200).json({ message: 'success', token: token, rol: results[0].rol_asignado });
         } else {
             res.status(401).json({ error: 'user or password incorrect' });
         }
