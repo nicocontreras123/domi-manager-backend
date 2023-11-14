@@ -14,8 +14,8 @@ exports.registerVisit = async (req, res) => {
 
 exports.registerExitVisit = async (req, res) => {
     try {
-        const { fecha_salida, hr_salida, id } = req.body;
-        const [results] = await db.execute(visitQueries.registerExit, [fecha_salida, hr_salida, id]);
+        const { fecha_salida, hr_salida, id_visita } = req.body;
+        const [results] = await db.execute(visitQueries.registerExit, [fecha_salida, hr_salida, id_visita]);
         res.status(201).json({ message: 'visit exit register success' });
     } catch (error) {
         console.error(error)
@@ -68,5 +68,41 @@ exports.getVisitsByAny = async (req, res) => {
     } catch (error) {
         console.error(error)
         res.status(500).json({ error: 'error to get visits, not found' });
+    }
+}
+
+exports.getVisitsByDates = async (req, res) => {
+    try {
+        const { fecha_desde, fecha_hasta } = req.query;
+        const [results] = await db.execute(visitQueries.getVisitsByDates, [fecha_desde, fecha_hasta]);
+        if(results.length === 0){
+            res.status(200).json({ message: 'visits not found in dates' });
+        } else {
+            res.status(200).json(results);
+        }
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ error: 'error to get visits, not found in dates' });
+    }
+}
+
+exports.getVisitsPagination = async (req, res) => {
+    try {
+        const { page, max_register } = req.query;
+        const totalVisits = await db.execute(visitQueries.getVisitsTotalRegisters);
+        const total = totalVisits[0][0].total;
+        const total_pages = Math.ceil(total / max_register);
+        const offset = (page - 1) * max_register;
+        const query = `SELECT v.*, d.nombre_de_sector FROM visitas v INNER JOIN domicilio d ON v.visita_domicilio_id = d.num_domicilio order by v.fecha_entrada desc, v.hr_entrada desc LIMIT ${offset}, ${max_register}`
+
+        const [results] = await db.execute(query);
+        if(results.length === 0){
+            res.status(200).json({ message: 'visits not found in dates' });
+        } else {
+            res.status(200).json({ total, total_pages, results });
+        }
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ error: 'error to get visits, not found in dates' });
     }
 }

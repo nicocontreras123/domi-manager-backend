@@ -6,7 +6,7 @@ const pool = mysql.createPool({
     password: 'tu_contraseña',
     database: 'aconpardo_condominio',
     waitForConnections: true,
-    connectionLimit: 10,
+    connectionLimit: 100,
     queueLimit: 0,
 });
 
