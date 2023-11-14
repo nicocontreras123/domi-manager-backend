@@ -1,12 +1,18 @@
 const db = require('../../config/db.config');
 const authQueries = require('../../querys/authQueries');
+const userQueries = require('../../querys/userQueries');
 const jwt = require("jsonwebtoken");
 const secret = require('../../config/jwt.config');
 exports.register = async (req, res) => {
     try {
         const { nombre_usuario, password, rol_asignado, rut, nombre, apellido } = req.body;
-        const [results] = await db.execute(authQueries.register, [nombre_usuario, password, rut, nombre, apellido, rol_asignado]);
-        res.status(201).json({ message: 'user register success' });
+        const userAndRutExist = await db.execute(userQueries.getUserByRutAndUser, [rut, nombre_usuario]);
+        if(userAndRutExist[0].length > 0){
+            res.status(500).json({ error: 'error in register user, user exist' });
+        } else {
+            const [results] = await db.execute(authQueries.register, [nombre_usuario, password, rut, nombre, apellido, rol_asignado]);
+            res.status(201).json({ message: 'user register success' });
+        }
     } catch (error) {
         console.error(error)
         res.status(500).json({ error: 'error in register user' });
